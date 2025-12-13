@@ -117,7 +117,15 @@ export default function Navbar() {
                             )}
                         </div>
                     ) : (
-                        <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'github' })} className="text-sm font-bold text-white hover:text-gh-link transition-colors">
+                        <button
+                            onClick={() => supabase.auth.signInWithOAuth({
+                                provider: 'github',
+                                options: {
+                                    redirectTo: `${window.location.origin}/auth/callback`
+                                }
+                            })}
+                            className="text-sm font-bold text-white hover:text-gh-link transition-colors"
+                        >
                             Sign In
                         </button>
                     )}
