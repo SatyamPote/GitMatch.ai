@@ -14,8 +14,8 @@ if (GEMINI_KEYS.length === 0) {
 
 // Exhaustive Fallback Mechanism
 async function generateWithFallback(prompt: string): Promise<string> {
-    // Valid/Std Model names as of late 2024
-    const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+    // Valid/Std Model names as of late 2024 (Specific versions to avoid 404s)
+    const models = ["gemini-1.5-flash-001", "gemini-1.5-pro-001", "gemini-1.5-flash", "gemini-pro"];
 
     // Explicitly check for keys
     if (!GEMINI_KEYS || GEMINI_KEYS.length === 0) {
