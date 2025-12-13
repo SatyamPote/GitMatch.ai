@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@layer base {
+    :root {
+        /* GitHub Dark Color Palette */
+        --color-gh-bg: #0d1117;
+        --color-gh-bg-secondary: #161b22;
+        --color-gh-border: #30363d;
+        --color-gh-text-primary: #c9d1d9;
+        --color-gh-text-secondary: #8b949e;
+        --color-gh-accent: #238636;
+        --color-gh-accent-hover: #2ea043;
+        --color-gh-link: #58a6ff;
+    }
+
+    body {
+        background-color: var(--color-gh-bg);
+        color: var(--color-gh-text-primary);
+    }
+}
+
+@theme {
+    --color-gh-bg: var(--color-gh-bg);
+    --color-gh-bg-secondary: var(--color-gh-bg-secondary);
+    --color-gh-border: var(--color-gh-border);
+    --color-gh-text-primary: var(--color-gh-text-primary);
+    --color-gh-text-secondary: var(--color-gh-text-secondary);
+    --color-gh-accent: var(--color-gh-accent);
+    --color-gh-link: var(--color-gh-link);
+}
+
+@layer components {
+    .btn-primary {
+        @apply px-4 py-2 rounded-md font-medium text-white transition-colors shadow-sm border;
+        border-color: rgba(240, 246, 252, 0.1);
+        background-color: var(--color-gh-accent);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-gh-accent-hover);
+    }
+
+    .btn-secondary {
+        @apply px-4 py-2 rounded-md font-medium transition-all;
+        background-color: var(--color-gh-bg-secondary);
+        color: var(--color-gh-text-primary);
+        border: 1px solid var(--color-gh-border);
+    }
+
+    .btn-secondary:hover {
+        background-color: #21262d;
+        border-color: #8b949e;
+    }
+
+    .card {
+        @apply rounded-md p-6;
+        background-color: var(--color-gh-bg-secondary);
+        border: 1px solid var(--color-gh-border);
+    }
+
+    .input-field {
+        @apply w-full rounded-md px-3 py-2 outline-none transition-all focus:ring-1;
+        background-color: #0d1117;
+        border: 1px solid var(--color-gh-border);
+        color: var(--color-gh-text-primary);
+        --tw-ring-color: var(--color-gh-link);
+        border-color: var(--color-gh-border);
+    }
+
+    .input-field:focus {
+        border-color: var(--color-gh-link);
+    }
+}
