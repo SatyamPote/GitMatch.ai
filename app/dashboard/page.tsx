@@ -10,7 +10,7 @@ import { deployAgentAction } from '@/app/actions' // Import Server Action
 interface Scan {
     id: string
     repo_url: string
-    status: 'pending' | 'completed'
+    status: 'pending' | 'analyzing' | 'completed' | 'failed'
     ai_summary: string | null
     created_at: string
 }
@@ -167,12 +167,12 @@ export default function Dashboard() {
                                                 {scan.repo_url.replace('https://github.com/', '')}
                                             </a>
                                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${scan.status === 'completed'
-                                                ? 'bg-[#238636]/10 text-[#34d399] border-[#238636]/20'
-                                                : scan.status === 'failed'
-                                                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                                                    : 'bg-[#d29922]/10 text-[#d29922] border-[#d29922]/20'
+                                                    ? 'bg-[#238636]/10 text-[#34d399] border-[#238636]/20'
+                                                    : scan.status === 'failed'
+                                                        ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                                        : 'bg-[#d29922]/10 text-[#d29922] border-[#d29922]/20'
                                                 }`}>
-                                                {scan.status}
+                                                {scan.status === 'analyzing' ? 'Analyzing...' : scan.status.charAt(0).toUpperCase() + scan.status.slice(1)}
                                             </span>
                                         </div>
 
