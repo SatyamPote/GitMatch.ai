@@ -3,37 +3,58 @@
 import { createClient } from '@/utils/supabase/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// API Keys provided by user
-const GEMINI_KEYS = [
-    'AIzaSyDcrWH41icbtxanwbwnQ7ObCNSyg6xAL7M',
-    'AIzaSyAtz6aacO4fxDhHleqUh4nt-st3We87Bq4'
-]
+// API Keys from Environment Variables
+const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(Boolean);
 
-const MODELS_TO_TRY = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"];
+if (GEMINI_KEYS.length === 0) {
+    console.warn('Warning: No GEMINI_API_KEYS found in environment variables. AI features may fail.');
+}
 
-async function generateWithFallback(prompt: string, keyAttempt = 0, modelAttempt = 0): Promise<string> {
-    if (keyAttempt >= GEMINI_KEYS.length) {
-        throw new Error('All Gemini API keys failed.');
+
+
+// Exhaustive Fallback Mechanism
+async function generateWithFallback(prompt: string): Promise<string> {
+    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro", "gemini-1.0-pro"];
+
+    // Explicitly check for keys
+    if (!GEMINI_KEYS || GEMINI_KEYS.length === 0) {
+        throw new Error('No Gemini API Keys found. Please configure GEMINI_API_KEYS in .env.local');
     }
 
-    const apiKey = GEMINI_KEYS[keyAttempt];
-    const modelName = MODELS_TO_TRY[modelAttempt];
+    let lastError = null;
 
-    try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-    } catch (error: any) {
-        console.warn(`Key ${keyAttempt + 1} with Model ${modelName} failed:`, error.message);
+    // Loop 1: Try every Key
+    for (let k = 0; k < GEMINI_KEYS.length; k++) {
+        const apiKey = GEMINI_KEYS[k];
 
-        // Try next model with same key
-        if (modelAttempt + 1 < MODELS_TO_TRY.length) {
-            return generateWithFallback(prompt, keyAttempt, modelAttempt + 1);
+        // Loop 2: Try every Model for this Key
+        for (let m = 0; m < models.length; m++) {
+            const modelName = models[m];
+
+            try {
+                // console.log(`Attempting: Key ${k + 1} with Model ${modelName}`); // Optional debug
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: modelName });
+
+                // Add a timeout to prevent hanging
+                const result = await Promise.race([
+                    model.generateContent(prompt),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 15000))
+                ]) as any;
+
+                if (!result || !result.response) throw new Error('Empty response');
+
+                return result.response.text();
+
+            } catch (error: any) {
+                console.warn(`[GitMatch AI] Key ${k + 1} + ${modelName} failed: ${error.message}`);
+                lastError = error;
+                // Continue to next model/key
+            }
         }
-        // Try next key with first model
-        return generateWithFallback(prompt, keyAttempt + 1, 0);
     }
+
+    throw new Error(`All AI attempts failed. Last error: ${lastError?.message || 'Unknown'}`);
 }
 
 export async function deployAgentAction(repoUrl: string) {
