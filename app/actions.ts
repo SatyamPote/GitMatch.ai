@@ -14,14 +14,15 @@ if (GEMINI_KEYS.length === 0) {
 
 // Exhaustive Fallback Mechanism
 async function generateWithFallback(prompt: string): Promise<string> {
-    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro", "gemini-1.0-pro"];
+    // Valid/Std Model names as of late 2024
+    const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
 
     // Explicitly check for keys
     if (!GEMINI_KEYS || GEMINI_KEYS.length === 0) {
         throw new Error('No Gemini API Keys found. Please configure GEMINI_API_KEYS in .env.local');
     }
 
-    let lastError = null;
+    let errorLog: string[] = [];
 
     // Loop 1: Try every Key
     for (let k = 0; k < GEMINI_KEYS.length; k++) {
@@ -32,7 +33,6 @@ async function generateWithFallback(prompt: string): Promise<string> {
             const modelName = models[m];
 
             try {
-                // console.log(`Attempting: Key ${k + 1} with Model ${modelName}`); // Optional debug
                 const genAI = new GoogleGenerativeAI(apiKey);
                 const model = genAI.getGenerativeModel({ model: modelName });
 
@@ -47,14 +47,15 @@ async function generateWithFallback(prompt: string): Promise<string> {
                 return result.response.text();
 
             } catch (error: any) {
-                console.warn(`[GitMatch AI] Key ${k + 1} + ${modelName} failed: ${error.message}`);
-                lastError = error;
+                const msg = `Key ${k + 1} (${modelName}): ${error.message}`;
+                console.warn(`[GitMatch AI] ${msg}`);
+                errorLog.push(msg);
                 // Continue to next model/key
             }
         }
     }
 
-    throw new Error(`All AI attempts failed. Last error: ${lastError?.message || 'Unknown'}`);
+    throw new Error(`All AI attempts failed.\nErrors:\n${errorLog.join('\n')}`);
 }
 
 export async function deployAgentAction(repoUrl: string) {
