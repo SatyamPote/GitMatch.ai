@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GitMatch.ai
 
-## Getting Started
+GitMatch.ai analyzes a GitHub repository's file structure and generates an AI-assisted technical report covering its likely purpose, technology stack, project structure, and implementation patterns. Sign in with GitHub to submit a repository and view its scan status and report.
 
-First, run the development server:
+**Live app:** [git-match-ai.vercel.app](https://git-match-ai.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [Next.js 16](https://nextjs.org/) with the App Router
+- [React 19](https://react.dev/) and TypeScript
+- [Supabase](https://supabase.com/) for GitHub OAuth, sessions, and data storage
+- [Google Gemini](https://ai.google.dev/) for AI-generated reports
+- Tailwind CSS 4
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
 
-## Learn More
+- Node.js and npm
+- A Supabase project configured with GitHub OAuth
+- A Google Gemini API key
 
-To learn more about Next.js, take a look at the following resources:
+### Install and configure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone the repository and install dependencies:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   git clone https://github.com/SatyamPote/GitMatch.ai.git
+   cd GitMatch.ai
+   npm install
+   ```
 
-## Deploy on Vercel
+2. Create `.env.local` in the project root with your credentials:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```dotenv
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   GEMINI_API_KEYS=your-gemini-api-key
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   `GEMINI_API_KEYS` accepts one or more comma-separated keys. Keep API keys private and do not commit `.env.local`.
+
+3. In Supabase, enable the GitHub OAuth provider and configure its callback URL as:
+
+   ```text
+   https://<your-supabase-project>.supabase.co/auth/v1/callback
+   ```
+
+   Add your local and deployed app URLs to Supabase's allowed redirect URLs. The app returns from authentication at `/auth/callback`.
+
+4. Configure the Supabase database tables used by the app. The scan action reads and writes `users` and `scans`; make sure their columns and access policies support the operations in `app/actions.ts`.
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   Visit [http://localhost:3000](http://localhost:3000).
+
+## Available scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the local development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Run the production server |
+| `npm run lint` | Run ESLint |
+
+## How repository analysis works
+
+After GitHub sign-in, submit a repository URL. The server action records a scan, retrieves the repository details and file tree through the GitHub API, and sends a truncated listing of up to 500 file paths to Gemini for a Markdown report. Scan status and the generated report are stored in Supabase.
+
+The current implementation fetches repository data without an authenticated GitHub API token, so analysis is intended for public repositories. It analyzes file names and paths rather than source file contents; generated descriptions are inferences and may not fully reflect the project.
+
+## Deploying
+
+Deploy the app to [Vercel](https://vercel.com/) or another platform that supports Next.js. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `GEMINI_API_KEYS` in the deployment environment, then configure the Supabase OAuth provider and redirect URLs for your deployed domain.
+
+## License
+
+This project is distributed under the [MIT License](LICENSE).
